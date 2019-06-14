@@ -8,6 +8,7 @@ import {
     window,
     languages,
 } from 'vscode';
+import cleanStack = require('clean-stack');
 
 import { allEnabledLanguages, getConfig } from './utils';
 import { PrettierVSCodeConfig } from './types';
@@ -88,14 +89,16 @@ export function setUsedModule(
  * @param fileName The path to the file
  * @returns {string} enhanced message with the filename
  */
-function addFilePath(msg: string, fileName: string): string {
+function formatError(error: Error, fileName: string): string {
+    let msg = error.message;
+
     const lines = msg.split('\n');
     if (lines.length > 0) {
         lines[0] = lines[0].replace(/(\d*):(\d*)/g, `${fileName}:$1:$2`);
-        return lines.join('\n');
+        msg = lines.join('\n');
     }
 
-    return msg;
+    return msg + '\n' + cleanStack(error.stack || '').replace(error.message, '');
 }
 
 /**
@@ -134,7 +137,7 @@ export function safeExecution(
                 return returnValue;
             })
             .catch((err: Error) => {
-                addToOutput(addFilePath(err.stack || err.message, fileName));
+                addToOutput(formatError(err, fileName));
                 updateStatusBar('Prettier: $(x)');
 
                 return defaultText;
@@ -147,7 +150,7 @@ export function safeExecution(
 
         return returnValue;
     } catch (err) {
-        addToOutput(addFilePath(err.stack || err.message, fileName));
+        addToOutput(formatError(err, fileName));
         updateStatusBar('Prettier: $(x)');
 
         return defaultText;
