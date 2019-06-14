@@ -134,7 +134,7 @@ export function safeExecution(
                 return returnValue;
             })
             .catch((err: Error) => {
-                addToOutput(addFilePath(err.message, fileName));
+                addToOutput(addFilePath(err.stack || err.message, fileName));
                 updateStatusBar('Prettier: $(x)');
 
                 return defaultText;
@@ -147,7 +147,7 @@ export function safeExecution(
 
         return returnValue;
     } catch (err) {
-        addToOutput(addFilePath(err.message, fileName));
+        addToOutput(addFilePath(err.stack || err.message, fileName));
         updateStatusBar('Prettier: $(x)');
 
         return defaultText;
